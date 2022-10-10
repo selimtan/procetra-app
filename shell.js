@@ -1,65 +1,54 @@
-var shell = require('shelljs');
+const tuval = require('@tuval/core/node');
+const manifest = require('./src/manifest');
+const appName = manifest.application.name;
+const container_name = manifest.application.docker_container_name;
 
-/* if (shell.exec('node shell_wp.js').code !== 0) {
-    shell.echo('Build failed');
-    shell.exit(1);
-} */
+var shell = require('shelljs');
 
 if (shell.exec('npm run wbuild').code !== 0) {
     shell.echo('Build failed');
     shell.exit(1);
 }
 
-
-shell.echo('App file creating...');
-shell.cd('../../../RPA/src');
-
-if (shell.exec('node FilePackager.js ../../Applications/BPMGenesis/ProcessMining/dist/index.js ../../DemoApp/apps/applications/ProcessMining.app').code !== 0) {
-    shell.echo('Build failed');
-    shell.exit(1);
+if (container_name) {
+    shell.echo('Getting appstore info from realm docker container');
+    shell.exec(`docker cp ${container_name}:/server/portal/static/appstore.json  ../../realm/appstore.json`)
 }
 
 
-shell.cp('-Rf', '../../DemoApp/apps/applications/ProcessMining.app', '../../pythonProjects/bpmgenesis/src/portal/static/applications/ProcessMining.app');
-shell.echo('App file done.');
+shell.echo('App file creating...');
 
+if (container_name) {
+    tuval.appPackager('./dist/index.js', `./dist/${appName}.app`);
+} else {
+    tuval.appPackager('./dist/index.js', `../../realmocean/realm-runtime/src/portal/static/applications/${manifest.application.name}.app`);
+}
 
 shell.echo('App store info updating...');
 const path = require('path');
 const fs = require('fs');
-const a = fs.readFileSync('../../DemoApp/apps/appstore.json', 'utf8');
+// const a = fs.readFileSync('./appstore.json', 'utf8');
+const a = fs.readFileSync('../../realmocean/realm-runtime/src/portal/static/appstore.json', 'utf8');
 
 const appStoreInfo = JSON.parse(a);
+const result = appStoreInfo.apps.find(item => item.id === appName);
 
-const appInfo = require('./src/AppStoreInfo');
-const result = appStoreInfo.apps.find(item => item.id === appInfo.id);
-//console.log('results ' + JSON.stringify(result));
 if (result) {
     const index = appStoreInfo.apps.indexOf(result);
-    appStoreInfo.apps[index] = appInfo;
+    appStoreInfo.apps[index] = require('./src/AppStoreInfo');
 } else {
-    appStoreInfo.apps.push(appInfo);
+    appStoreInfo.apps.push(require('./src/AppStoreInfo'));
 }
 const aa = JSON.stringify(appStoreInfo);
 
-fs.writeFileSync('../../DemoApp/apps/appstore.json', aa, 'utf8');
+// fs.writeFileSync('.//appstore.json', aa, 'utf8');
+fs.writeFileSync('../../realmocean/realm-runtime/src/portal/static/appstore.json', aa, 'utf8');
 shell.echo('App info done.');
 
-
-
-/* if (shell.exec('npm run bundle').code !== 0) {
-    shell.echo('Bundlet failed');
-    shell.exit(1);
-} */
-
-//shell.cp('-Rf', './dist/*', '../diagram/node_modules/@tuval/core');
-//shell.cp('-Rf', './dist/*', '../core-graphics/node_modules/@tuval/core');
-//shell.cp('-Rf', './dist/*', '../coreplus/node_modules/@tuval/core');
-//shell.cp('-Rf', './dist/*', '../graphics/node_modules/@tuval/core');
-//shell.cp('-Rf', './dist/*', '../forms/node_modules/@tuval/core');
-//shell.cp('-Rf', './dist/*', '../winforms/node_modules/@tuval/core');
-//shell.cp('-Rf', './dist/*', '../gui/node_modules/@tuval/core');
-//shell.cp('-Rf', './dist/*', '../gui/node_modules/@tuval/core');
-
-/* shell.cp('-Rf', './dist/*', '../../../DemoApp/node_modules/@tuval/components/buttons'); */
-//shell.cp('-Rf', './dist/tuval-core-wp.js', '../../Tuval_Test_v_1/dist');
+if (container_name) {
+    shell.echo('Exposing appstore info to realm container');
+    shell.exec(`docker cp  .//appstore.json  ${container_name}:/server/portal/static/appstore.json`)
+    shell.echo(`Exposing ${appName}.app to realm container appstore`);
+    shell.exec(`docker cp  ./dist/${appName}.app  ${container_name}:/server/portal/static/applications/${appName}.app`)
+    shell.echo(`All done.`);
+}

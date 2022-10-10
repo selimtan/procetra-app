@@ -1,9 +1,10 @@
 module.exports = {
     application: {
-        name: 'ProcessMining',
-        path: './src/Application.ts'
+        name: 'Procetra',
+        path: './src/Application.ts',
+        displayName: "Procetra",
     },
-    threads: {
+    /* threads: {
         'PMThreadWorker': 'ThreadWorker.ts'
-    }
+    } */
 }

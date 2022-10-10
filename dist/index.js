@@ -18713,12 +18713,13 @@ var SyntaxError = /** @class */ (function (_super) {
 
 module.exports = {
     application: {
-        name: 'ProcessMining',
-        path: './src/Application.ts'
+        name: 'Procetra',
+        path: './src/Application.ts',
+        displayName: "Procetra",
     },
-    threads: {
+    /* threads: {
         'PMThreadWorker': 'ThreadWorker.ts'
-    }
+    } */
 }
 
 /***/ }),
@@ -18868,5 +18869,5 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__tuval_graphics__;
 ;
 });
 //# sourceMappingURL=index.js.map
-                    tuval$core.ModuleLoader.FireModuleLoadedEvent('ProcessMining', tuval$core['__APPS__']['ProcessMining']);
+                    tuval$core.ModuleLoader.FireModuleLoadedEvent('Procetra', tuval$core['__APPS__']['Procetra']);
                     
